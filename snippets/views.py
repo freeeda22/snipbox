@@ -183,3 +183,27 @@ class TagListAPI(ListAPIView):
             "total_tags": tags.count(),
             "tags": serializer.data
         })
+
+class SnippetsByTagAPI(ListAPIView):
+    """ snippet list according to tag"""
+    serializer_class = SnippetDetailSerializer
+
+    def list(self, request, *args, **kwargs):
+        tag_id = kwargs.get('tag_id')  #getting tag id
+        snippets = Snippet.objects.filter(tag__id=tag_id).select_related('created_by','tag').only( #filtering data
+            'id', 
+            'record_id',
+            'title', 
+            'note', 
+            'created_at',
+            'updated_at',
+            'created_by__username',
+            'tag__id',
+            'tag__title',
+        )
+
+        serializer = SnippetDetailSerializer(snippets, many=True)
+        return Response({
+            "total_snippets": snippets.count(), #getting count
+            "snippets": serializer.data # return response
+        })
