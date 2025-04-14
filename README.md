@@ -41,7 +41,9 @@ Please update  EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in settings.py from a mai
 
 Run the server:
 python manage.py migrate
+
 python manage.py createsuperuser
+
 python manage.py runserver
 
 
