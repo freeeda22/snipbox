@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.generics import ( 
     CreateAPIView, 
     GenericAPIView,
+    RetrieveUpdateAPIView,
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
@@ -15,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from .serializers import ( 
     UserCreateSerializer,
+    UserUpdateSerializer,
 )
 
 User = get_user_model()  
@@ -111,3 +113,33 @@ class LoginAPIView(GenericAPIView):
                 "username": user.username,  # Include other user details as needed
             }
         }, status=status.HTTP_200_OK)
+
+class UserUpdateAPIView(RetrieveUpdateAPIView):
+    """ user update api"""
+    queryset = User.objects.all()
+    serializer_class = UserUpdateSerializer
+    lookup_field = 'pk'
+
+    def update(self, request, *args, **kwargs):
+        """
+        Custom update method to handle the update of user data.
+        """
+        user = self.get_object() #Fetches the object based on the lookup_field from the URL
+
+        # Serialize the incoming data
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        if serializer.is_valid(): #validates the serializer
+            serializer.save()  #updating the data
+            send_mail(
+                subject='Profile was Updated',
+                message='Hi {username}, your profile has been updated successfully.'.format(username=user),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            return Response({
+                "message": "User updated successfully!",
+                "user": serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) #Raises error

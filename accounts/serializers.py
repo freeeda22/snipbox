@@ -8,3 +8,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ["username"]
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """user update serializer"""
+    class Meta:
+        model = User
+        fields = "__all__"
