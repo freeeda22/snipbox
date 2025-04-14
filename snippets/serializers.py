@@ -80,3 +80,14 @@ class SnippetOverviewSerializer(serializers.ModelSerializer):
             'tag',
             'url',
             ] 
+
+class TagSerializer(serializers.ModelSerializer):
+    """tag serializer"""
+    created_by =  serializers.SerializerMethodField()
+    
+    def get_created_by(self, obj):
+        return obj.created_by.username if obj.created_by else None
+    
+    class Meta:
+        model = Tag
+        fields = ['id', 'title', 'created_by']

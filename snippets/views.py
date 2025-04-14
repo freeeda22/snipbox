@@ -7,6 +7,7 @@ from .serializers import (
     SnippetCreateSerializer,
     SnippetDetailSerializer,
     SnippetOverviewSerializer,
+    TagSerializer,
 )
 from django.db import transaction
 from rest_framework.generics import ( 
@@ -166,4 +167,19 @@ class SnippetDeleteAPI(DestroyAPIView):
         return Response({
             "total_snippets": remaining_snippets.count(), #getting count
             "snippets": serializer.data #returning the filtered data as a response
+        })
+
+class TagListAPI(ListAPIView):
+    """tag serilalizer"""
+    serializer_class = TagSerializer
+
+    def list(self, request, *args, **kwargs):
+        tags = ( Tag.objects.all().select_related('created_by'
+                                                  ).only('id','tag_id','title','created_by__username'))
+        serializer = TagSerializer(tags, many=True)
+        
+        # Return the response with the total count and list of tags
+        return Response({
+            "total_tags": tags.count(),
+            "tags": serializer.data
         })
