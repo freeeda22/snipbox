@@ -10,6 +10,7 @@ from rest_framework.generics import (
     GenericAPIView,
     RetrieveUpdateAPIView,
     DestroyAPIView,
+    RetrieveAPIView,
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
@@ -18,6 +19,7 @@ from .models import User
 from .serializers import ( 
     UserCreateSerializer,
     UserUpdateSerializer,
+    UserSerializer,
 )
 
 User = get_user_model()  
@@ -180,3 +182,27 @@ class UserDeleteAPIView(DestroyAPIView):
         Delete the user instance from the database.
         """
         instance.delete()
+
+class UserRetrieveAPIView(RetrieveAPIView):
+    """
+    Retrieve the details of a specific user.
+    """
+    queryset = User.objects.all()  # Queryset to fetch user from the database
+    serializer_class = UserSerializer  # Serializer class to format the response
+    lookup_field = 'id'  # Use 'id' from the URL to look up the user
+
+    def get(self, request, *args, **kwargs):
+        """
+        Get user details.
+        """
+        user = self.get_object()  # Get the user based on 'id' from the URL
+
+        # Return the user's data in the response
+        return Response({
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,  # Include other fields as needed
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        }, status=status.HTTP_200_OK)
+
