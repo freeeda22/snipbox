@@ -156,8 +156,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '1b9046bc33ed8d'
-EMAIL_HOST_PASSWORD = '1f1c7cbb424630'
+EMAIL_HOST_USER = 'xxxxxxxxxxxxxxxxxxx'  #update proper host user
+EMAIL_HOST_PASSWORD = 'xxxxxxxxxxxxx' #update proper host password
 EMAIL_PORT = '2525'# Your Gmail password or App Password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # The sender's email address
 
