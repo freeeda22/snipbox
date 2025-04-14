@@ -28,9 +28,11 @@ Please update  EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
 ## Installation Instructions
 
 git clone https://github.com/freeeda22/snipbox.git
+
 cd snipbox
 
 python -m venv venv
+
 source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 
 pip install -r requirements.txt
