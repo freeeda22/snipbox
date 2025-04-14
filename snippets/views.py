@@ -13,7 +13,8 @@ from rest_framework.generics import (
     CreateAPIView,
     RetrieveAPIView,
     ListAPIView,
-    RetrieveUpdateAPIView
+    RetrieveUpdateAPIView,
+    DestroyAPIView
 )
 from rest_framework.exceptions import PermissionDenied, NotFound
 from django.contrib.auth import get_user_model
@@ -135,3 +136,34 @@ class SnippetUpdateAPI(RetrieveUpdateAPIView):
             fail_silently=False,
         ) 
         return Response(serializer.data)  # Return updated data
+
+class SnippetDeleteAPI(DestroyAPIView):
+    """snippet delete api"""
+    serializer_class = SnippetDetailSerializer
+    queryset = Snippet.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        snippet_ids = request.data.get('snippet_ids', []) #getting data as an array for multiple delete
+        if not snippet_ids: #checking whether data in the input payload
+            return Response({"detail": "No snippet IDs provided."}, status=400)
+        snippets = Snippet.objects.filter(id__in=snippet_ids) #filtering according to the input data
+        snippets.delete() #deleting the filtered data
+        remaining_snippets = Snippet.objects.filter(created_by=request.user) #filtering other exists data of created user
+        serializer = SnippetDetailSerializer(remaining_snippets, many=True) #serializing the data
+        deleted_count = len(snippet_ids)
+        message = (
+            f'Hi {self.request.user.first_name},\n\n'
+            f'{deleted_count} snippet(s) have been deleted from your SnipBox account.\n'
+            f'Thank you for staying organized with SnipBox!\n\n'
+        )
+        send_mail(
+            subject='Snippets Deleted',
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[self.request.user.email],
+            fail_silently=False,
+        )
+        return Response({
+            "total_snippets": remaining_snippets.count(), #getting count
+            "snippets": serializer.data #returning the filtered data as a response
+        })
