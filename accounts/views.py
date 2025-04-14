@@ -9,6 +9,7 @@ from rest_framework.generics import (
     CreateAPIView, 
     GenericAPIView,
     RetrieveUpdateAPIView,
+    DestroyAPIView,
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
@@ -143,3 +144,39 @@ class UserUpdateAPIView(RetrieveUpdateAPIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) #Raises error
+
+class UserDeleteAPIView(DestroyAPIView):
+    """
+    Delete a user.
+    Only authenticated users or superadmin can delete their own account.
+    """
+    queryset = User.objects.all()
+    lookup_field = 'id'  # Assuming the user is deleted by the 'id'
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()  # Get the user object based on the ID from the URL
+        # Check if the user is trying to delete their own account and loggined user is superadmin or not
+        if user == self.request.user or self.request.user.is_superuser:
+            self.perform_destroy(user)  #destory the user
+            send_mail(
+                subject='Your SnipBox Account Has Been Deleted',
+                message=f'Hi {user.first_name},\n\nYour SnipBox account has been successfully deleted.\n\nRegards,\nSnipBox Team',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            return Response({
+                "message": "Your account has been deleted successfully.",
+            }, status=status.HTTP_204_NO_CONTENT)
+    
+        else:
+            return Response({
+                "message": "Permission denied.",
+                "error": "You can only delete your own account."
+            }, status=status.HTTP_403_FORBIDDEN)
+    
+    def perform_destroy(self, instance):
+        """
+        Delete the user instance from the database.
+        """
+        instance.delete()
