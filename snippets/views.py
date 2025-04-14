@@ -13,6 +13,7 @@ from rest_framework.generics import (
     CreateAPIView,
     RetrieveAPIView,
     ListAPIView,
+    RetrieveUpdateAPIView
 )
 from rest_framework.exceptions import PermissionDenied, NotFound
 from django.contrib.auth import get_user_model
@@ -108,3 +109,29 @@ class SnippetOverviewAPI(ListAPIView):
             "total_snippets": queryset.count(), #getting total count
             "snippets": serializer.data #serialized data
         })
+
+class SnippetUpdateAPI(RetrieveUpdateAPIView):
+    """snippet update api"""
+    serializer_class = SnippetDetailSerializer
+    queryset = Snippet.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()  #fetches the Snippet instance based on the URL 
+        if instance.created_by != self.request.user:
+            return Response({"detail": "You do not have permission to edit this snippet."}, status=403)
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True) #Validates the data
+        self.perform_update(serializer) #updating data 
+        send_mail(
+            subject='Snippet Updated',
+            message = (
+                f'Hi {instance.created_by.first_name},\n\n'
+                f'Your snippet "{instance.record_id}" was updated successfully.\n'
+                f'Thank you for using SnipBox!\n\n'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[instance.created_by.email],
+            fail_silently=False,
+        ) 
+        return Response(serializer.data)  # Return updated data

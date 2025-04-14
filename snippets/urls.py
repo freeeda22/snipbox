@@ -5,4 +5,5 @@ urlpatterns = [
     path('create/', SnippetCreateAPI.as_view()),
     path('detail/<int:pk>/', SnippetDetailAPIView.as_view(), name='snippet-detail'),
     path('overview/list/', SnippetOverviewAPI.as_view()),
+    path('edit/<int:pk>/', SnippetUpdateAPI.as_view()),
 ]
